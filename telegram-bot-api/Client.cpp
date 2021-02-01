@@ -1572,6 +1572,7 @@ void Client::JsonMessage::store(JsonValueScope *scope) const {
   }
   object("chat", JsonChat(message_->chat_id, false, client_));
   object("date", message_->date);
+  object("is_outgoing", td::JsonBool(message_->is_outgoing));
   if (message_->edit_date > 0) {
     object("edit_date", message_->edit_date);
   }
@@ -9442,20 +9443,20 @@ td::int32 Client::choose_added_member_id(const td_api::messageChatAddMembers *me
 bool Client::need_skip_update_message(int64 chat_id, const object_ptr<td_api::message> &message, bool is_edited) const {
   auto chat = get_chat(chat_id);
   CHECK(chat != nullptr);
-  if (message->is_outgoing_) {
-    switch (message->content_->get_id()) {
-      case td_api::messageChatChangeTitle::ID:
-      case td_api::messageChatChangePhoto::ID:
-      case td_api::messageChatDeletePhoto::ID:
-      case td_api::messageChatDeleteMember::ID:
-      case td_api::messagePinMessage::ID:
-      case td_api::messageProximityAlertTriggered::ID:
-        // don't skip
-        break;
-      default:
-        return true;
-    }
-  }
+  // if (message->is_outgoing_) {
+  //   switch (message->content_->get_id()) {
+  //     case td_api::messageChatChangeTitle::ID:
+  //     case td_api::messageChatChangePhoto::ID:
+  //     case td_api::messageChatDeletePhoto::ID:
+  //     case td_api::messageChatDeleteMember::ID:
+  //     case td_api::messagePinMessage::ID:
+  //     case td_api::messageProximityAlertTriggered::ID:
+  //       // don't skip
+  //       break;
+  //     default:
+  //       return true;
+  //   }
+  // }
 
   int32 message_date = message->edit_date_ == 0 ? message->date_ : message->edit_date_;
   if (message_date <= get_unix_time() - 86400) {
@@ -10000,6 +10001,7 @@ Client::FullMessageId Client::add_message(object_ptr<td_api::message> &&message,
   if (message->interaction_info_ != nullptr) {
     message_info->views = message->interaction_info_->view_count_;
     message_info->forwards = message->interaction_info_->forward_count_;
+    message_info->is_outgoing = message->is_outgoing_;
   }
   message_info->is_scheduled = message->scheduling_state_!=nullptr;
   if (message->scheduling_state_!=nullptr && message->scheduling_state_->get_id() == td_api::messageSchedulingStateSendAtDate::ID) {

@@ -11,7 +11,7 @@ ADD telegram-bot-api /usr/src/telegram-bot-api/telegram-bot-api
 RUN mkdir -p build \
  && cd build \
  && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=.. .. \
- && cmake --build . --target install -j $(nproc) \
+ && cmake --build . --target install -j 8 \
  && strip /usr/src/telegram-bot-api/bin/telegram-bot-api
 
 FROM alpine:3.12
@@ -19,6 +19,7 @@ FROM alpine:3.12
 ENV TELEGRAM_WORK_DIR="/var/lib/telegram-bot-api" \
     TELEGRAM_TEMP_DIR="/tmp/telegram-bot-api"
 
+USER root
 RUN apk add --no-cache --update openssl libstdc++
 COPY --from=build /usr/src/telegram-bot-api/bin/telegram-bot-api /usr/local/bin/telegram-bot-api
 COPY docker-entrypoint.sh /docker-entrypoint.sh
@@ -28,7 +29,7 @@ RUN addgroup -g 101 -S telegram-bot-api \
  && mkdir -p ${TELEGRAM_WORK_DIR} ${TELEGRAM_TEMP_DIR} \
  && chown telegram-bot-api:telegram-bot-api ${TELEGRAM_WORK_DIR} ${TELEGRAM_TEMP_DIR}\
  && chmod 700 ${TELEGRAM_TEMP_DIR}
-USER telegram-bot-api:telegram-bot-api
+# USER telegram-bot-api:telegram-bot-api
 
 HEALTHCHECK CMD nc -z localhost 8081
 EXPOSE 8081/tcp 8082/tcp

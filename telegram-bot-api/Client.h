@@ -734,6 +734,7 @@ class Client : public WebhookActor::Callback {
     // start custom properties
     int32 views = 0;
     int32 forwards = 0;
+    bool is_outgoing = false;
 
     bool is_scheduled = false;
     int32 scheduled_at = 0;
